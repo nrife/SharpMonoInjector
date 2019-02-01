@@ -30,6 +30,9 @@ namespace SharpMonoInjector
 
         public static bool Is64Bit(this Process p)
         {
+            if (p.HasExited)
+                throw new Win32Exception();
+
             if (!Environment.Is64BitOperatingSystem)
                 return false;
 
