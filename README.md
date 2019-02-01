@@ -8,4 +8,4 @@ In order for the injector to work, the load/unload methods need to match the fol
 ```sh
 static void Method()
 ```
-#fix and supper my project
+#fix and support my project
