@@ -21,7 +21,7 @@ namespace SharpMonoInjector.Injection
         {
             {"mono_get_root_domain", IntPtr.Zero},
             {"mono_thread_attach", IntPtr.Zero},
-            {"mono_image_open_from_data", IntPtr.Zero},
+            {"mono_image_open_from_data", IntPtr.Zero},//mono_image_open_from_data_with_name = mono_image_open_from_data + 2
             {"mono_assembly_load_from_full", IntPtr.Zero},
             {"mono_assembly_get_image", IntPtr.Zero},
             {"mono_class_from_name", IntPtr.Zero},
@@ -55,12 +55,17 @@ namespace SharpMonoInjector.Injection
                 if (!Exports.ContainsKey(name))
                     continue;
 
+                if (name == "mono_image_open_from_data")
+                    i += 2;
+
                 short ordinal = _memory.ReadShort(ordinals + i * 2);
 
                 IntPtr address = mod + _memory.ReadInt(relatives + ordinal * 4);
 
                 Exports[name] = address;
             }
+
+           // Exports["mono_image_open_from_data"] += 2;
 
             return Exports.All(e => e.Value != IntPtr.Zero);
         }
@@ -80,7 +85,7 @@ namespace SharpMonoInjector.Injection
 
                 IntPtr rawImage = OpenImageFromData(cfg.Assembly);
 
-                Utils.EnsureNotZero(rawImage, "OpenImageFromData()");
+                Utils.EnsureNotZero(rawImage, "OpenImageFromDataWithName()");
 
                 _attach = true;
 
@@ -120,7 +125,10 @@ namespace SharpMonoInjector.Injection
                 _memory.AllocateAndWrite(assembly),
                 (IntPtr)assembly.Length,
                 (IntPtr)1,
-                IntPtr.Zero);
+                IntPtr.Zero,
+                IntPtr.Zero,
+                _memory.AllocateAndWrite(Encoding.UTF8.GetBytes(@"Test"))
+                );
         }
 
         private IntPtr OpenAssemblyFromImage(IntPtr image)
